@@ -17,7 +17,6 @@ class Area {
     strokeWeight(1);
     
     fill(this.rgb1,this.rgb2, this.rgb3);
-    
     ellipse(this.x, this.y, this.tam , this.tam);
     
   }

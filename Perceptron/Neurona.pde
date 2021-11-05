@@ -2,16 +2,24 @@
 class Neurona {
   
   float[] pesos;
-  float bias;
+  float alfa;
   float res;
+  float bias;
+  float rgb1, rgb2, rgb3;
+  float d;
 
-  Neurona(float bias){
+  Neurona(float alfa){
     this.pesos = new float[3];
     this.pesos[0] = 0.5;
     this.pesos[1] = 0.2;
     this.pesos[2] = 0.3;
-    this.bias = bias;
+    this.alfa = alfa;
     this.res = 0; 
+    this.rgb1 = 0; 
+    this.rgb2 = 0;
+    this.rgb3 = 0;
+    this.d = 0;
+    this.bias = 0.05; 
   }
   
   //Clasificacion de los puntos de si pertenecen a 1 o 0
@@ -20,7 +28,7 @@ class Neurona {
      suma+= x*this.pesos[0] + y*this.pesos[1] + this.pesos[2];
      
      this.res = f(suma);
-     
+
      return f(suma);
   }
   
@@ -29,7 +37,13 @@ class Neurona {
   }
   
   //Entrenamiento de la neurona para ajustar los pesos
-  void Training(){
+  void Training(float x, float y, int correct){
+    float eval = Classify(x,y);
+    float error = correct - eval;
+
+    this.pesos[0] = pesos[0] + this.alfa * error * x;
+    this.pesos[1] = pesos[1] + this.alfa * error * y;
+    this.pesos[2] = pesos[2] + this.alfa * error;
   }
 
 
