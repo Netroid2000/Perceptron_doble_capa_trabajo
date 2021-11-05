@@ -1,6 +1,6 @@
 
 Punto[] points = new Punto[2000];
-Neurona brain;
+Red red;
 Area[] areas = new Area[2];
 
 //Inclinacion de la linea
@@ -18,6 +18,10 @@ void setup(){
      points[i] = new Punto(random(0, width), random(0, height));
   }
   
+  //crear la red con salida igual a la cantidad de areas mas 1
+  red = new Red(2, areas.length+1);
+  
+  //Crear y pintar las areas
   Circulos();
   
   println(frameCount);
@@ -34,7 +38,7 @@ void draw(){
 
 void Circulos() {
     for(Area area: areas){
-      area = new Area(random(0,width), random(0,height), aTam, aTam);
+      area = new Area(random(0,width), random(0,height), aTam);
       area.Pintar();
     }
 }
