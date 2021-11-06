@@ -18,7 +18,7 @@ class Punto {
     
     fill(this.rgb1, this.rgb2, this.rgb3);
     
-    ellipse(this.x, this.y, 8 , 8);
+    ellipse(this.x, this.y, 10 , 10);
     
   }
   
