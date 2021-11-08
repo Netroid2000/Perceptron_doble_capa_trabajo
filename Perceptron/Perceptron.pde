@@ -1,5 +1,5 @@
 
-Punto[] points = new Punto[1000];
+Punto[] points = new Punto[20];
 Red red;
 
 
@@ -12,8 +12,8 @@ float aTam = 100;
 
 void setup(){
   //Tamaño de la pantalla
-  size(800, 800);
-  background(200);
+  size(400, 400);
+  background(250);
   
   for(int i = 0; i < points.length ; i++){
      //Dar valores, de X y Y, aceptables dentro de la grafica
@@ -31,20 +31,21 @@ void setup(){
 
 void draw(){
   //Pintar los puntos
+  int z = 0;
   for(Punto p : points){
+    z++;
+    println("Punto numer: "+ z);
     red.Classify(p);
     p.Pintar();
   }
   
   Punto puntoT = new Punto(random(0, width), random(0, height));
   
-  for(int i = 0; i < red.red[red.red.length-1].length - 1; i++){
-    red.TrainingLastCap(puntoT, aTam/2 < sqrt(pow(areas[i].x - puntoT.x, 2) + pow(areas[i].y - puntoT.y, 2)) ? 1 : -1, i);
-  }
   
-  red.TrainingLowCaps();
+  red.Training(puntoT, areas, aTam);
  
-  delay(50);
+ 
+  delay(10);
 }
 
 void Circulos() {

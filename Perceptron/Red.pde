@@ -1,12 +1,14 @@
 class Red {
   Neurona[][] red;
+  float[] bias;
   
   Red(int capas,int nCapas){
     this.red = new Neurona[capas][nCapas];
-    
-    for(int i = 0; i < red.length ; i++){
-       for(int z = 0; z < red[i].length ; z++){
-         red[i][z] = new Neurona(0.05);
+    this.bias = new float[capas];
+    for(int i = 0; i < this.red.length ; i++){
+       this.bias[i] = 0.05; 
+       for(int z = 0; z < this.red[i].length ; z++){
+         this.red[i][z] = new Neurona(0.5);
        }
     }
   }
@@ -15,70 +17,86 @@ class Red {
     
     for(int i = 0; i < red.length; i++){
       //println(i);
+      int r = 0;
       for(Neurona neurona: red[i]){
         
         if(i == 0){
-          neurona.Classify(punto.x, punto.y);
-          println("coordenadas: " + punto.x + ", " + punto.y+" "+ i);   
-        }else if(i > 0){
-          println("entes: " + neurona.res);
-          if (red[i - 1] != null && int(neurona.Classify(red[i - 1][0].res, red[i - 1][1].res)) >= 1){
-            
-             punto.rgb1 = neurona.rgb1;
-             punto.rgb2 = neurona.rgb2;
-             punto.rgb2 = neurona.rgb2;
-             
-          }else{
-             
-             punto.rgb1 = 255;
-             punto.rgb2 = 255;
-             punto.rgb2 = 255;
-             
-          }
+          neurona.Classify(punto.x/width, punto.y/height);
+        }else if(i > 0 && i < red.length-1){
           
-          println("despues: " + neurona.res);          
+          neurona.Classify(red[i - 1][0].res, red[i - 1][1].res);
+        }else{
+         
+          neurona.Classify(red[i - 1][0].res, red[i - 1][1].res);
+          
+          
+          if(neurona.res == 1){
+            
+            //println(neurona.rgb1 + " " + neurona.rgb2 + " "+ neurona.rgb3);
+            punto.rgb1 = neurona.rgb1;
+            punto.rgb2 = neurona.rgb2;
+            punto.rgb3 = neurona.rgb3;
+            
+            
+            //println(punto.rgb1 + " " + punto.rgb2 + " "+ punto.rgb3 + " entro:" + r);
+          }else{
+            //println("Blanco");
+            punto.rgb1 = 255;
+            punto.rgb2 = 255;
+            punto.rgb3 = 255;
+          }
+          r++;
+          println("caso: "+ r +" "+neurona.res);
         }
       }
     }
   }
   
   //Entrenamiento de la ultima capa del perceptron
-  void TrainingLastCap(Punto puntoT, int correct, int i){
-    
+  void Training(Punto puntoT, Area[] areas, float aTam){
      this.Classify(puntoT);
      
-     int z = red.length - 1;
- 
-     this.red[z][i].d = (correct - red[z][i].res)*df(red[z][i].res);
-     this.red[z][i].bias =  this.red[z][i].bias + this.red[z][i].alfa * this.red[z][i].d;
-     this.red[z][i].pesos[0] = this.red[z][i].pesos[0] + this.red[z][i].alfa * this.red[z][i].d;
-     this.red[z][i].pesos[1] = this.red[z][i].pesos[1] + this.red[z][i].alfa * this.red[z][i].d;
-     
-     
+     for(int i = this.red.length - 1; i >= 0; i--){
+       for(int z = 0; z < this.red[i].length; z++){
+         if(i == (this.red.length - 1)){
+           
+           //println("entro en primera");
+           int correct = aTam/2 < sqrt(pow(areas[z].x - puntoT.x, 2) + pow(areas[z].y - puntoT.y, 2)) ? 1 : -1;
+           this.red[i][z].error = (correct - this.red[i][z].res); 
+           this.red[i][z].d = this.red[i][z].error * df(this.red[i][z].res);
+         }else{
+           
+           //println("entro en las ocultas");
+           float propagationError = 0;
+           
+           for (int k = 0; k < this.red[i + 1].length; k++){
+             propagationError += (red[i + 1][k].error * (red[i + 1][k].pesos[k] / (red[i + 1][k].pesos[0] + red[i + 1][k].pesos[1]))); 
+           }
+           
+           this.red[i][z].error = propagationError;
+           
+           this.red[i][z].d = this.red[i][z].error * df(this.red[i][z].res);
+           
+           //println(this.red[i][z].error);
+         }
+         
+         this.red[i][z].bias = this.red[i][z].bias + (this.red[i][z].alfa * this.red[i][z].d);
+         
+         if(i > 0){
+           for(int k = 0; k < this.red[i][z].pesos.length; k++){
+             this.red[i][z].pesos[k] = this.red[i][z].pesos[k] + ((this.red[i][z].alfa * (sigmoidCapas(this.red[i], this.red[i - 1] )*(1 - sigmoidCapas(this.red[i], this.red[i - 1]))) * this.red[i - 1][z].res) * (-1));
+           }
+         }else{
+           
+           float[] entradas = new float[]{puntoT.x/width,puntoT.y/height};
+           for(int k = 0; k < this.red[i][z].pesos.length; k++){
+             this.red[i][z].pesos[k] = this.red[i][z].pesos[k] + ((this.red[i][z].alfa * (sigmoidEntradas(this.red[i], entradas )*(1 - sigmoidEntradas(this.red[i], entradas))) * entradas[k]) * (-1));
+          }
+           
+         }
+       }
+     }
   }
-  
-  //Entrenamiento de las capas anteriores a la de salida
-  void TrainingLowCaps(){
-    //Recorre las capaz en reverza empezando una antes de la capa de salida
-    for(int z = red.length - 1; z >= 0 ; z--){
-      
-      if(z < red.length-1){
-        
-        for(int c = 0; c < this.red[z].length-1; c++){
-          
-          for(int v = 0; v < this.red[z+1].length; v++){
-            
-            this.red[z][c].d = this.red[z + 1][v].pesos[v] * this.red[z + 1][v].d * this.df(this.red[z][c].res);
-            
-          } 
-          this.red[z][c].bias =  this.red[z][c].bias + this.red[z][c].alfa * this.red[z][c].d;
-          this.red[z][c].pesos[0] = this.red[z][c].pesos[0] + this.red[z][c].alfa * this.red[z][c].d;
-          this.red[z][c].pesos[1] = this.red[z][c].pesos[1] + this.red[z][c].alfa * this.red[z][c].d;
-        }
-      }
-    }
-  }
-  
   
   
   float df(float x){
@@ -88,5 +106,23 @@ class Red {
   float f(float x){
     
     return 1/(1 + exp(-x));
+  }
+  
+  float sigmoidCapas (Neurona[] capaActual, Neurona[] entradas){
+    float res = 0;
+    for(int i = 0; i < entradas.length; i++){
+      res += (capaActual[i].pesos[i] * entradas[i].res);
+    }
+    
+    return f(res);
+  }
+  
+   float sigmoidEntradas (Neurona[] capaActual, float[] entradas){
+    float res = 0;
+    for(int i = 0; i < entradas.length; i++){
+      res += (capaActual[i].pesos[i] * entradas[i]);
+    }
+    
+    return f(res);
   }
 }
